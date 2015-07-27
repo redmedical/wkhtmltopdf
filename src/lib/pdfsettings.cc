@@ -382,6 +382,7 @@ PdfGlobal::PdfGlobal():
 	useCompression(true),
 	viewportSize(""),
 	imageDPI(600),
+	adjust(1.0f,0,0),
 	imageQuality(94){};
 
 TableOfContent::TableOfContent():

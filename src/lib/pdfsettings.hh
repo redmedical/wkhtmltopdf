@@ -136,6 +136,14 @@ struct DLL_PUBLIC PdfGlobal {
 	int imageDPI;
 	int imageQuality;
 
+	struct Adjust {
+		Adjust():scale(1.0f),dx(0),dy(0){}
+		Adjust(qreal s,qreal x,qreal y):scale(s), dx(x),dy(y){}
+		qreal scale;
+		qreal dx;
+		qreal dy;
+	} adjust;
+
 	LoadGlobal load;
 
 	QString get(const char * name);

@@ -420,6 +420,25 @@ void PdfConverterPrivate::pagesLoaded(bool ok) {
 		return;
 	}
 
+
+    if(settings.adjust.scale != 0){
+        painter->scale(settings.adjust.scale,settings.adjust.scale);
+    }
+
+    if(settings.adjust.dx!=0 || settings.adjust.dy!=0){
+        qreal sx = (qreal)printer->width()/(qreal)printer->widthMM();
+        qreal sy = (qreal)printer->height()/(qreal)printer->heightMM();
+        if(settings.adjust.scale != 0){
+            sx /=settings.adjust.scale;
+            sy /=settings.adjust.scale;
+        }
+        painter->translate(settings.adjust.dx*sx,settings.adjust.dy*sy);
+    }
+
+    painter->setRenderHint(QPainter::SmoothPixmapTransform,true);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+
+
 	currentPhase = 1;
 	emit out.phaseChanged();
 	outline = new Outline(settings);
