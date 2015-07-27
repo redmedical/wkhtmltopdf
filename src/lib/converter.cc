@@ -63,7 +63,6 @@ void ConverterPrivate::fail() {
 	convertionDone = true;
 	clearResources();
 	emit outer().finished(false);
-	qApp->exit(0); // quit qt's event handling
 }
 
 /*!
