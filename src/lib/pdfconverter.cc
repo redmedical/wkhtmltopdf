@@ -75,9 +75,19 @@ bool DLL_LOCAL looksLikeHtmlAndNotAUrl(QString str) {
 	return s.count('<') > 0 || s.count('<') > 0;
 }
 
-PdfConverterPrivate::PdfConverterPrivate(PdfGlobal & s, PdfConverter & o) :
+PdfConverterPrivate::PdfConverterPrivate(PdfGlobal & s, PdfConverter & o
+#ifndef WKHTMLTOPDF_NOT_PASS_PRINTER
+                                         , QPrinter *printer
+#endif
+                                         ) :
 	settings(s), pageLoader(s.load, true),
-	out(o), printer(0), painter(0)
+    out(o), printer(
+#ifndef WKHTMLTOPDF_NOT_PASS_PRINTER
+                printer
+#else
+                0
+#endif
+                ), painter(0)
 #ifdef __EXTENSIVE_WKHTMLTOPDF_QT_HACK__
     , webPrinter(0), measuringHFLoader(s.load), hfLoader(s.load), tocLoader1(s.load), tocLoader2(s.load)
 	, tocLoader(&tocLoader1), tocLoaderOld(&tocLoader2)
@@ -331,6 +341,7 @@ void PdfConverterPrivate::pagesLoaded(bool ok) {
 		return;
 	}
 
+#ifdef WKHTMLTOPDF_NOT_PASS_PRINTER
 	lout = settings.out;
 	if (settings.out == "-") {
 #ifndef Q_OS_WIN32
@@ -344,6 +355,16 @@ void PdfConverterPrivate::pagesLoaded(bool ok) {
 	  lout = tempOut.create(".pdf");
 
 	printer = new QPrinter(settings.resolution);
+#else
+    if (!printer) {
+        emit out.error("Unable to write to printer.");
+        fail();
+        return;
+    }
+#endif
+
+
+#ifdef WKHTMLTOPDF_NOT_PASS_PRINTER
 	if (settings.dpi != -1) printer->setResolution(settings.dpi);
 	//Tell the printer object to print the file <out>
 
@@ -386,6 +407,7 @@ void PdfConverterPrivate::pagesLoaded(bool ok) {
 	printer->setOrientation(settings.orientation);
 	printer->setColorMode(settings.colorMode);
 	printer->setCreator("wkhtmltopdf " STRINGIZE(FULL_VERSION));
+#endif
 
 	if (!printer->isValid()) {
 		emit out.error("Unable to write to destination");
@@ -400,9 +422,11 @@ void PdfConverterPrivate::pagesLoaded(bool ok) {
 
 	printDocument();
 #else
-	printer->printEngine()->setProperty(QPrintEngine::PPK_UseCompression, settings.useCompression);
-	printer->printEngine()->setProperty(QPrintEngine::PPK_ImageQuality, settings.imageQuality);
-	printer->printEngine()->setProperty(QPrintEngine::PPK_ImageDPI, settings.imageDPI);
+    if(printer->outputFormat()==QPrinter::PdfFormat){ // bug in qt 4.8.5
+		printer->printEngine()->setProperty(QPrintEngine::PPK_UseCompression, settings.useCompression);
+		printer->printEngine()->setProperty(QPrintEngine::PPK_ImageQuality, settings.imageQuality);
+		printer->printEngine()->setProperty(QPrintEngine::PPK_ImageDPI, settings.imageDPI);
+    }
 
 	painter = new QPainter();
 
@@ -1034,6 +1058,7 @@ void PdfConverterPrivate::printDocument() {
 
  	painter->end();
 #endif
+#ifdef WKHTMLTOPDF_NOT_PASS_PRINTER
 	if (settings.out == "-" && lout != "/dev/stdout") {
 		QFile i(lout);
 		QFile o;
@@ -1057,6 +1082,8 @@ void PdfConverterPrivate::printDocument() {
 		}
 		outputData = i.readAll();
 	}
+#endif
+
 	clearResources();
 #ifdef __EXTENSIVE_WKHTMLTOPDF_QT_HACK__
 	currentPhase = 6;
@@ -1107,11 +1134,13 @@ void PdfConverterPrivate::clearResources() {
 
 #endif
 
+#ifdef WKHTMLTOPDF_NOT_PASS_PRINTER
 	if (printer) {
 		QPrinter * tmp = printer;
 		printer = 0;
 		delete tmp;
 	}
+#endif
 
 	if (painter) {
 		QPainter * tmp = painter;
@@ -1134,8 +1163,16 @@ Converter & PdfConverterPrivate::outer() {
   \brief Create a page converter object based on the supplied settings
   \param settings Settings for the conversion
 */
-PdfConverter::PdfConverter(settings::PdfGlobal & settings):
-	d(new PdfConverterPrivate(settings, *this)) {
+PdfConverter::PdfConverter(settings::PdfGlobal & settings
+#ifndef WKHTMLTOPDF_NOT_PASS_PRINTER
+                           , QPrinter *printer
+#endif
+                           ):
+    d(new PdfConverterPrivate(settings, *this
+#ifndef WKHTMLTOPDF_NOT_PASS_PRINTER
+                         , printer
+#endif
+                              )) {
 }
 
 /*!

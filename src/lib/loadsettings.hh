@@ -25,6 +25,9 @@
 #include <QString>
 
 #include <wkhtmltox/dllbegin.inc>
+#undef DLL_PUBLIC
+#define DLL_PUBLIC
+
 namespace wkhtmltopdf {
 namespace settings {
 

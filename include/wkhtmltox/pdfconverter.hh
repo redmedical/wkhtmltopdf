@@ -29,7 +29,11 @@ class DLL_LOCAL PdfConverterPrivate;
 class DLL_PUBLIC PdfConverter: public Converter {
 	Q_OBJECT
 public:
-	PdfConverter(settings::PdfGlobal & globalSettings);
+	PdfConverter(settings::PdfGlobal & globalSettings
+#ifndef WKHTMLTOPDF_NOT_PASS_PRINTER
+                 , QPrinter * printer
+#endif
+                 );
 	~PdfConverter();
 	int pageCount();
 	void addResource(const settings::PdfObject & pageSettings, const QString * data=0);

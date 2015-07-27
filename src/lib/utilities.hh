@@ -31,6 +31,8 @@
 #include <QUrl>
 
 #include <wkhtmltox/dllbegin.inc>
+#undef DLL_PUBLIC
+#define DLL_PUBLIC
 /**
  * Custom simplistic style
  */

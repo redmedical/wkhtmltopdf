@@ -104,7 +104,11 @@ public:
 class DLL_LOCAL PdfConverterPrivate: public ConverterPrivate {
 	Q_OBJECT
 public:
-	PdfConverterPrivate(settings::PdfGlobal & s, PdfConverter & o);
+	PdfConverterPrivate(settings::PdfGlobal & s, PdfConverter & o
+                    #ifndef WKHTMLTOPDF_NOT_PASS_PRINTER
+                                             , QPrinter *printer
+                    #endif
+                        );
 	~PdfConverterPrivate();
 
 	settings::PdfGlobal & settings;
