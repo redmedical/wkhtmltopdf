@@ -22,6 +22,10 @@
 #ifndef __WKHTMLTOPDF_DLLBEGIN__
 #define __WKHTMLTOPDF_DLLBEGIN__
 
+#  if defined(STATIC)
+#define DLL_PUBLIC
+#define DLL_LOCAL
+# else
 #if defined _WIN32 || defined __CYGWIN__
   #ifdef BUILDING_DLL
      #define DLL_PUBLIC __declspec(dllexport)
@@ -38,6 +42,8 @@
     #define DLL_LOCAL
   #endif
 #endif
+#endif
+
 
 #if defined _WIN32
 #define CALLTYPE __stdcall
